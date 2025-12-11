@@ -28,6 +28,20 @@ namespace UI {
         static ImGuiTextFilter filter;
         static std::vector<const GameItem*> filteredItems;
         static bool needsFilterUpdate = true;
+        static bool excludeEnchanted = false;
+
+        // Helper function to check if an item has an enchantment
+        bool IsItemEnchanted(const GameItem* item) {
+            if (!item || !item->form) return false;
+
+            auto* enchantableForm = item->form->As<RE::TESEnchantableForm>();
+            if (enchantableForm) {
+                return enchantableForm->formEnchanting != nullptr ||
+                       enchantableForm->amountofEnchantment > 0;
+            }
+
+            return false;
+        }
 
         void __stdcall Render() {
             const auto& gameItems = GetGameItems();
@@ -40,28 +54,45 @@ namespace UI {
             if (needsFilterUpdate) {
                 filteredItems.clear();
                 for (const auto& gameItem : gameItems) {
-                    if (filter.PassFilter(gameItem.name.c_str()) ||
-                        filter.PassFilter(gameItem.plugin.c_str()) ||
-                        filter.PassFilter(gameItem.editorID.c_str()) ||
-                        filter.PassFilter(gameItem.typeName.c_str())) { // weapon, armor, ingredient, etc
+                    bool passesTextFilter = filter.PassFilter(gameItem.name.c_str()) ||
+                                           filter.PassFilter(gameItem.plugin.c_str()) ||
+                                           filter.PassFilter(gameItem.editorID.c_str()) ||
+                                           filter.PassFilter(gameItem.typeName.c_str()); // weapon, armor, ingredient, etc
+
+                    bool passesEnchantmentFilter = !excludeEnchanted || !IsItemEnchanted(&gameItem);
+
+                    if (passesTextFilter && passesEnchantmentFilter) {
                         filteredItems.push_back(&gameItem);
                     }
                 }
                 needsFilterUpdate = false;
             }
 
-            // Display count with filtered count on same line if active
-            if (filter.IsActive()) {
+            if (filter.IsActive() || excludeEnchanted) {
                 ImGui::Text("Total Items: %zu (Filtered: %zu)", gameItems.size(), filteredItems.size());
             } else {
                 ImGui::Text("Total Items: %zu", gameItems.size());
             }
             ImGui::Separator();
 
+            ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.7f);
+
             if (filter.Draw("Search##ArmorFilter")) {
                 needsFilterUpdate = true;
             }
             ImGui::Separator();
+
+            if (ImGui::Checkbox("Exclude Enchanted", &excludeEnchanted)) {
+                needsFilterUpdate = true;
+            }
+
+            ImGui::SameLine();
+
+            float windowWidth = ImGui::GetWindowWidth();
+            float targetWidth = windowWidth * 0.70f; // 70% of window width
+            float cursorX = ImGui::GetCursorPosX() - ImGui::GetStyle()->ItemSpacing.x; // 8.0f
+            float inputWidth = targetWidth - cursorX;
+            ImGui::SetNextItemWidth(inputWidth);
 
             ImGui::InputInt("Spawn Count", &itemCount, 1, 10);
             if (itemCount < 1) itemCount = 1;

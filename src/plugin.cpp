@@ -139,7 +139,7 @@ namespace {
 
 SKSEPluginLoad(const SKSE::LoadInterface* skse) {
     InitializeLog();
-    logger::info("Simple SKSE Item Cheat Menu v1.0 loading...");
+    logger::info("Simple SKSE Item Cheat Menu v1.1 loading...");
 
     SKSE::Init(skse);
 
