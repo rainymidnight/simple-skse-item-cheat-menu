@@ -14,6 +14,7 @@ namespace UI {
     }
 
     namespace ItemSpawner {
+        void Initialize();
         void __stdcall Render();
     }
 }
