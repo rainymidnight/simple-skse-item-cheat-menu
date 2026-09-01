@@ -30,8 +30,19 @@ endif()
 # Otherwise, you can set OUTPUT_FOLDER to any place you'd like :)
 # set(OUTPUT_FOLDER "C:/path/to/any/folder")
 
+set(BUILD_TESTS OFF CACHE BOOL "Build CommonLibSSE-NG tests" FORCE)
+set(ENABLE_SKYRIM_SE ON CACHE BOOL "Enable pre-AE Skyrim support" FORCE)
+set(ENABLE_SKYRIM_AE ON CACHE BOOL "Enable Skyrim AE support" FORCE)
+set(ENABLE_SKYRIM_VR ON CACHE BOOL "Enable Skyrim VR support" FORCE)
+set(SKSE_SUPPORT_PATCH_SAFETY OFF CACHE BOOL "Enable trampoline patch validation" FORCE)
+
+add_subdirectory(
+    "${CMAKE_CURRENT_SOURCE_DIR}/external/CommonLibSSE-NG"
+    "${CMAKE_CURRENT_BINARY_DIR}/commonlibsse-ng"
+)
+include("${CMAKE_CURRENT_SOURCE_DIR}/external/CommonLibSSE-NG/cmake/CommonLibSSE.cmake")
+
 # Setup your SKSE plugin as an SKSE plugin!
-find_package(CommonLibSSE CONFIG REQUIRED)
 add_commonlibsse_plugin(${PROJECT_NAME} SOURCES
     src/plugin.cpp
     src/UI.cpp
